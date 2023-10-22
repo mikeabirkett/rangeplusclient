@@ -1,0 +1,7 @@
+services:
+  api:
+    build: .
+    image: mikebirkett/rangeplusclient-api
+    ports: 
+      - "8080:5000"
+      

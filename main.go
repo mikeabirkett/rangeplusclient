@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"rangeplusclient/structs"
 )
 
 func main() {
@@ -14,7 +13,7 @@ func main() {
 	http.HandleFunc("/order_feed", orderFeed)
 	http.HandleFunc("/publish_product", publishProduct)
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":5000", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +38,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	var aReq structs.AuthReq
+	var aReq AuthReq
 
 	err := json.NewDecoder(r.Body).Decode(&aReq)
 	if err != nil {
@@ -64,7 +63,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		panic(errMsg)
 	}
 
-	var aResp structs.AuthResp
+	var aResp AuthResp
 
 	cookie = response.Cookies()[0]
 
@@ -98,7 +97,7 @@ func orderFeed(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	var Orders structs.Orders
+	var Orders Orders
 
 	apiUrl := fmt.Sprintf("https://supplier.rstore.com/rest/order_feed.api?supplier_id=%d", supplier_id)
 
@@ -189,4 +188,53 @@ func publishProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Publish Product Endpoint"))
+}
+
+type AuthReq struct {
+	UserName string
+	Password string
+}
+
+type AuthResp struct {
+	Mode        string `json:"mode"`
+	Supplier_id int    `json:"supplier_id"`
+}
+
+type Order struct {
+	OrderDisp            string `json:"order_disp"`
+	CustomerName         string `json:"customer_name"`
+	PostCode             string `json:"postcode"`
+	BuildingNameNumber   string `json:"building_name_number"`
+	Organisation         string `json:"organisation"`
+	Street               string `json:"street"`
+	City                 string `json:"city"`
+	County               string `json:"county"`
+	Country              string `json:"country"`
+	CustomerPhone        string `json:"customer_telephone"`
+	CustomerEmailAddress string `json:"customer_email_address"`
+	ProductCode          string `json:"product_code"`
+	Title                string `json:"title"`
+	Quantity             int    `json:"qty"`
+	Status               string `json:"status"`
+	SKU                  int    `json:"sku"`
+	Price                int    `json:"price"`
+	OrderPlacedDate      string `json:"order_placed_date"`
+	DespatchDate         string `json:"despatch_date"`
+	CourierName          string `json:"courier_name"`
+	DeliveryService      string `json:"delivery_service"`
+	TrackingReference    string `json:"tracking_reference"`
+	Notes                string `json:"notes"`
+}
+
+type Orders struct {
+	Array []Order `json:"order_Arr"`
+}
+
+type PublishResponseItem struct {
+	Label   string `json:"label"`
+	SKUList string `json:"sku_list"`
+}
+
+type PublishResponse struct {
+	Array []PublishResponseItem `json:"result"`
 }
