@@ -39,3 +39,12 @@ type Order struct {
 type Orders struct {
 	Array []Order `json:"order_Arr"`
 }
+
+type PublishResponseItem struct {
+	Label   string `json:"label"`
+	SKUList string `json:"sku_list"`
+}
+
+type PublishResponse struct {
+	Array []PublishResponseItem `json:"result"`
+}

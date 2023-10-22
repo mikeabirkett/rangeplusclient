@@ -12,6 +12,7 @@ func main() {
 	http.HandleFunc("/", getRoot)
 	http.HandleFunc("/authenticate", authenticate)
 	http.HandleFunc("/order_feed", orderFeed)
+	http.HandleFunc("/publish_product", publishProduct)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -139,4 +140,53 @@ func orderFeed(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Order Feed Endpoint"))
+}
+
+func publishProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	// var Orders structs.Orders
+
+	// apiUrl := fmt.Sprintf("https://supplier.rstore.com/rest/product_feed.api?supplier_id=%d", supplier_id)
+
+	// request, err := http.NewRequest("GET", apiUrl, bytes.NewBuffer([]byte(`{"mode":"Live"}`)))
+	// if err != nil {
+	// 	errMsg := fmt.Sprintf("Could not create new API request : %s", err)
+	// 	panic(errMsg)
+	// }
+
+	// request.Header.Add("Cookie", fmt.Sprintf("%s=%s", cookie.Name, cookie.Value))
+
+	// request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	// client := &http.Client{}
+	// response, err := client.Do(request)
+	// if err != nil {
+	// 	errMsg := fmt.Sprintf("Could not send API request : %s", err)
+	// 	panic(errMsg)
+	// }
+
+	// if response.StatusCode != http.StatusOK {
+	// 	fmt.Println(response.Status)
+	// 	fmt.Println(response.Body)
+
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	w.Write([]byte("Publish Product Endpoint"))
+
+	// 	return
+	// }
+
+	// err = json.NewDecoder(response.Body).Decode(&Orders)
+	// if err != nil {
+	// 	errMsg := fmt.Sprintf("Could not decode API response : %s", err)
+	// 	panic(errMsg)
+	// }
+
+	// for _, order := range Orders.Array {
+	// 	fmt.Printf("%+v\n\n", order)
+	// }
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Publish Product Endpoint"))
 }
