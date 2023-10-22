@@ -3,5 +3,4 @@ services:
     build: .
     image: mikebirkett/rangeplusclient-api
     ports: 
-      - "8080:5000"
-      
+      - "9000:5000"
