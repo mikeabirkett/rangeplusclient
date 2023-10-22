@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"rangeplusclient/structs"
 )
 
 func main() {
@@ -18,7 +19,10 @@ func main() {
 	}
 }
 
-var cookie string
+var (
+	cookie      *http.Cookie
+	supplier_id int
+)
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -34,17 +38,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	type authReq struct {
-		UserName string
-		Password string
-	}
-
-	type authResp struct {
-		mode        string
-		supplier_id int32
-	}
-
-	var aReq authReq
+	var aReq structs.AuthReq
 
 	err := json.NewDecoder(r.Body).Decode(&aReq)
 	if err != nil {
@@ -52,8 +46,8 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		panic(errMsg)
 	}
 
-	apiUrl := "https://uatsupplier.rstore.com/rest/authenticate.api"
-	userData := []byte(`{"user":"` + aReq.UserName + `", "pass":"` + aReq.Password + `"}`)
+	apiUrl := "https://supplier.rstore.com/rest/authenticate.api"
+	userData := []byte(fmt.Sprintf(`{"user":"%s", "pass":"%s"}`, aReq.UserName, aReq.Password))
 
 	request, err := http.NewRequest("GET", apiUrl, bytes.NewBuffer(userData))
 	if err != nil {
@@ -69,9 +63,9 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		panic(errMsg)
 	}
 
-	var aResp authResp
+	var aResp structs.AuthResp
 
-	c := response.Cookies()
+	cookie = response.Cookies()[0]
 
 	if response.StatusCode != http.StatusOK {
 		fmt.Println(response.Status)
@@ -89,17 +83,58 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		panic(errMsg)
 	}
 
-	fmt.Println(c)
+	fmt.Println(cookie)
 	fmt.Println(&aResp)
+
+	supplier_id = aResp.Supplier_id
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Authentication Endpoint"))
-
 }
 
 func orderFeed(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	var Orders structs.Orders
+
+	apiUrl := fmt.Sprintf("https://supplier.rstore.com/rest/order_feed.api?supplier_id=%d", supplier_id)
+
+	request, err := http.NewRequest("GET", apiUrl, bytes.NewBuffer([]byte(`{"mode":"Live"}`)))
+	if err != nil {
+		errMsg := fmt.Sprintf("Could not create new API request : %s", err)
+		panic(errMsg)
+	}
+
+	request.Header.Add("Cookie", fmt.Sprintf("%s=%s", cookie.Name, cookie.Value))
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		errMsg := fmt.Sprintf("Could not send API request : %s", err)
+		panic(errMsg)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		fmt.Println(response.Status)
+		fmt.Println(response.Body)
+
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Order Feed Endpoint"))
+
+		return
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&Orders)
+	if err != nil {
+		errMsg := fmt.Sprintf("Could not decode API response : %s", err)
+		panic(errMsg)
+	}
+
+	for _, order := range Orders.Array {
+		fmt.Printf("%+v\n\n", order)
 	}
 
 	w.WriteHeader(http.StatusOK)

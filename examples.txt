@@ -1,0 +1,10 @@
+Postman:
+
+localhost:8080/authenticate
+
+{
+    "UserName":"XXXXX",
+    "Password":"XXXXX"
+}
+
+localhost:8080/order_feed
